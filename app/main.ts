@@ -52,6 +52,7 @@ function catFile(args:string[]){
                     return;
                 }
                 const nullByteIndex = buffer.indexOf(0);
+                
                 if (nullByteIndex === -1) {
                     console.error('Invalid Git object format');
                     return;
