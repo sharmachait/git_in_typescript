@@ -51,7 +51,13 @@ function catFile(args:string[]){
                     console.error('An error occurred during decompression:', err);
                     return;
                 }
-                const content=buffer.toString();
+                const nullByteIndex = buffer.indexOf(0);
+                if (nullByteIndex === -1) {
+                    console.error('Invalid Git object format');
+                    return;
+                }
+
+                const content = buffer.subarray(nullByteIndex + 1,buffer.length).toString();
                 process.stdout.write(content);
             });
         });
