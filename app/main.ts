@@ -14,13 +14,7 @@ switch (command) {
         init();
         break;
     case Commands.CatFile:
-        if(args.length < 3){
-            throw new Error(`Invalid Options and parameters`)
-        }
-        const option = args[1];
-        const hash=args[2];
-        console.log({option});
-        console.log({hash});
+        catFile(args);
         break;
     default:
         throw new Error(`Unknown command ${command}`);
@@ -32,4 +26,34 @@ function init(){
     fs.mkdirSync(".git/refs", { recursive: true });
     fs.writeFileSync(".git/HEAD", "ref: refs/heads/main\n");
     console.log("Initialized git directory!");
+}
+function catFile(args:string[]){
+    if(args.length < 3){
+        throw new Error(` Options and parameters(hash) expected`)
+    }
+    const option = args[1];
+    const hash:string=args[2];
+    if(option!=="-p"){
+        throw new Error("Invalid Options");
+    }
+    else{
+        const folderName=hash.substring(0,2);
+        const fileName=hash.substring(2,hash.length)
+        const compressedFilePath = '.git/objects/'+folderName+"/"+fileName;
+
+        fs.readFile(compressedFilePath,(err,data)=>{
+            if (err) {
+                console.error('An error occurred while reading the file:', err);
+                return;
+            }
+            zlib.unzip(data, (err: Error | null, buffer: Buffer) => {
+                if (err) {
+                    console.error('An error occurred during decompression:', err);
+                    return;
+                }
+                const content=buffer.toString();
+                process.stdout.write(content);
+            });
+        });
+    }
 }
