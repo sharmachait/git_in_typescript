@@ -93,13 +93,13 @@ function hashObject(args:string[]){
             return;
         }
         //calculate sha
-        const sha = calculateSha1(data);
-        const folderName = sha.substring(0,2);
-        const fileName = sha.substring(2,sha.length);
         const size = data.length;
         const header = `blob ${size}\0`;
         const headerBuffer = Buffer.from(header);
         const bufferToWrite = Buffer.concat([headerBuffer,data]);
+        const sha = calculateSha1(bufferToWrite);
+        const folderName = sha.substring(0,2);
+        const fileName = sha.substring(2,sha.length);
         const folderPath='.git/objects/'+folderName;
         const compressedFilePath = '.git/objects/'+folderName+"/"+fileName;
         if (!fs.existsSync(folderPath)) {
