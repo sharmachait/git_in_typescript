@@ -1,11 +1,14 @@
 import * as fs from 'fs';
 import * as zlib from 'zlib';
+import * as path from 'path';
+import * as crypto from 'crypto';
 const args = process.argv.slice(2);
 const command = args[0];
 
 enum Commands {
     Init = "init",
-    CatFile="cat-file"
+    CatFile="cat-file",
+    HashObject="hash-object"
 }
 
 switch (command) {
@@ -15,6 +18,9 @@ switch (command) {
         break;
     case Commands.CatFile:
         catFile(args);
+        break;
+    case Commands.HashObject:
+        hashObject(args);
         break;
     default:
         throw new Error(`Unknown command ${command}`);
@@ -52,7 +58,7 @@ function catFile(args:string[]){
                     return;
                 }
                 const nullByteIndex = buffer.indexOf(0);
-                
+
                 if (nullByteIndex === -1) {
                     console.error('Invalid Git object format');
                     return;
@@ -63,4 +69,49 @@ function catFile(args:string[]){
             });
         });
     }
+}
+
+function calculateSha1(buffer: Buffer): string {
+    const hash = crypto.createHash('sha1');
+    hash.update(buffer);
+    return hash.digest('hex');
+}
+
+function hashObject(args:string[]){
+    if(args.length < 3){
+        throw new Error(` Options and parameters(hash) expected`)
+    }
+    const option = args[1];
+    if(option!=="-w"){
+        throw new Error("Invalid Options");
+    }
+    const filePath:string = args[2];
+    const absolutePath = path.resolve(filePath);
+    fs.readFile(absolutePath,(err,data)=>{
+        if (err) {
+            console.error('An error occurred while reading the file:', err);
+            return;
+        }
+        //calculate sha
+        const sha = calculateSha1(data);
+        const folderName = sha.substring(0,2);
+        const fileName = sha.substring(2,sha.length);
+        const size = data.length;
+        const header = `blob ${size}\0`;
+        const headerBuffer = Buffer.from(header);
+        const bufferToWrite = Buffer.concat([headerBuffer,data]);
+        const folderPath='.git/objects/'+folderName;
+        const compressedFilePath = '.git/objects/'+folderName+"/"+fileName;
+        if (!fs.existsSync(folderPath)) {
+            fs.mkdirSync(folderPath, { recursive: true });
+        }
+        let gzipStream = zlib.createGzip();
+        let fileWriteStream = fs.createWriteStream(compressedFilePath);
+        gzipStream.pipe(fileWriteStream);
+        gzipStream.write(bufferToWrite);
+        gzipStream.end();
+        fileWriteStream.on('finish', () => {
+            process.stdout.write(sha);
+        });
+    });
 }
