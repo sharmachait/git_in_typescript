@@ -1,121 +1,26 @@
-import * as fs from 'fs';
-import * as zlib from 'zlib';
-import * as path from 'path';
-import * as crypto from 'crypto';
+import init from './gitCommands/init';
+import catFile from './gitCommands/catFile';
+import hashObject from './gitCommands/hashObject';
 const args = process.argv.slice(2);
 const command = args[0];
 
 enum Commands {
-    Init = "init",
-    CatFile="cat-file",
-    HashObject="hash-object"
+  Init = 'init',
+  CatFile = 'cat-file',
+  HashObject = 'hash-object',
 }
 
 switch (command) {
-    case Commands.Init:
-        console.log("Logs from your program will appear here!");
-        init();
-        break;
-    case Commands.CatFile:
-        catFile(args);
-        break;
-    case Commands.HashObject:
-        hashObject(args);
-        break;
-    default:
-        throw new Error(`Unknown command ${command}`);
-}
-
-function init(){
-    fs.mkdirSync(".git", { recursive: true });
-    fs.mkdirSync(".git/objects", { recursive: true });
-    fs.mkdirSync(".git/refs", { recursive: true });
-    fs.writeFileSync(".git/HEAD", "ref: refs/heads/main\n");
-    console.log("Initialized git directory!");
-}
-function catFile(args:string[]){
-    if(args.length < 3){
-        throw new Error(` Options and parameters(hash) expected`)
-    }
-    const option = args[1];
-    const hash:string=args[2];
-    if(option!=="-p"){
-        throw new Error("Invalid Options");
-    }
-    else{
-        const folderName=hash.substring(0,2);
-        const fileName=hash.substring(2,hash.length)
-        const compressedFilePath = '.git/objects/'+folderName+"/"+fileName;
-
-        fs.readFile(compressedFilePath,(err,data)=>{
-            if (err) {
-                console.error('An error occurred while reading the file:', err);
-                return;
-            }
-            zlib.unzip(data, (err: Error | null, buffer: Buffer) => {
-                if (err) {
-                    console.error('An error occurred during decompression:', err);
-                    return;
-                }
-                const nullByteIndex = buffer.indexOf(0);
-
-                if (nullByteIndex === -1) {
-                    console.error('Invalid Git object format');
-                    return;
-                }
-
-                const content = buffer.subarray(nullByteIndex + 1,buffer.length).toString();
-                process.stdout.write(content);
-            });
-        });
-    }
-}
-
-function calculateSha1(buffer: Buffer): string {
-    const hash = crypto.createHash('sha1');
-    hash.update(buffer);
-    return hash.digest('hex');
-}
-
-function hashObject(args:string[]){
-    if(args.length < 3){
-        throw new Error(` Options and parameters(hash) expected`)
-    }
-    const option = args[1];
-    if(option!=="-w"){
-        throw new Error("Invalid Options");
-    }
-    const filePath:string = args[2];
-    const absolutePath = path.resolve(filePath);
-    fs.readFile(absolutePath,(err,data)=>{
-        if (err) {
-            console.error('An error occurred while reading the file:', err);
-            return;
-        }
-        //calculate sha
-        const size = data.length;
-        const header = `blob ${size}\0`;
-        const headerBuffer = Buffer.from(header);
-        const bufferToWrite = Buffer.concat([headerBuffer,data]);
-        const sha = calculateSha1(bufferToWrite);
-        const folderName = sha.substring(0,2);
-        const fileName = sha.substring(2,sha.length);
-        const folderPath='.git/objects/'+folderName;
-        const compressedFilePath = '.git/objects/'+folderName+"/"+fileName;
-        if (!fs.existsSync(folderPath)) {
-            fs.mkdirSync(folderPath, { recursive: true });
-        }
-
-        zlib.deflate(bufferToWrite, (err, compressedBuffer) => {
-            if (err) {
-                process.stdout.write('Compression error:'+ err);
-            } else {
-                fs.writeFile(compressedFilePath, compressedBuffer,(err)=>{
-                    if(err)
-                        console.log('error writing to file ' +err);
-                });
-                process.stdout.write(sha);
-            }
-        });
-    });
+  case Commands.Init:
+    console.log('Logs from your program will appear here!');
+    init();
+    break;
+  case Commands.CatFile:
+    catFile(args);
+    break;
+  case Commands.HashObject:
+    hashObject(args);
+    break;
+  default:
+    throw new Error(`Unknown command ${command}`);
 }
