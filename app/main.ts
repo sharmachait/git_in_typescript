@@ -105,13 +105,17 @@ function hashObject(args:string[]){
         if (!fs.existsSync(folderPath)) {
             fs.mkdirSync(folderPath, { recursive: true });
         }
-        let gzipStream = zlib.createGzip();
-        let fileWriteStream = fs.createWriteStream(compressedFilePath);
-        gzipStream.pipe(fileWriteStream);
-        gzipStream.write(bufferToWrite);
-        gzipStream.end();
-        fileWriteStream.on('finish', () => {
-            process.stdout.write(sha);
+
+        zlib.deflate(bufferToWrite, (err, compressedBuffer) => {
+            if (err) {
+                process.stdout.write('Compression error:'+ err);
+            } else {
+                fs.writeFile(compressedFilePath, compressedBuffer,(err)=>{
+                    if(err)
+                        console.log('error writing to file ' +err);
+                });
+                process.stdout.write(sha);
+            }
         });
     });
 }
