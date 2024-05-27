@@ -12,7 +12,7 @@ export default function catFile(args: string[]) {
     throw new Error('Invalid Options');
   } else {
     const content = getContentFromHash(hash);
-    const nullByteIndex = content.indexOf(0);
+    const nullByteIndex = content.indexOf('\0');
 
     if (nullByteIndex === -1) {
       throw new Error('Invalid Git object format');
