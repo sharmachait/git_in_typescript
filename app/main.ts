@@ -25,6 +25,7 @@ switch (command) {
     break;
   case Commands.LsTree:
     lsTree(args);
+    break;
   default:
     throw new Error(`Unknown command ${command}`);
 }
