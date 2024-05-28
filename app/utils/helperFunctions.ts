@@ -64,8 +64,8 @@ export function hashFile(filePath: string): string {
     const sha = calculateSha1(bufferToWrite);
     const folderName = sha.substring(0, 2);
     const fileName = sha.substring(2);
-    const folderPath = `.git/objects/${folderName}`;
-    const compressedFilePath = `${folderPath}/${fileName}`;
+    const folderPath = path.join('.git', 'objects', folderName);
+    const compressedFilePath = path.join(folderPath, fileName);
 
     if (!fs.existsSync(folderPath)) {
       fs.mkdirSync(folderPath, { recursive: true });
