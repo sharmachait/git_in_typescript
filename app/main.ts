@@ -30,7 +30,7 @@ switch (command) {
     lsTree(args);
     break;
   case Commands.WriteTree:
-    process.stdout.write(writeTree('./'));
+    process.stdout.write(writeTree(process.cwd()));
     break;
   default:
     throw new Error(`Unknown command ${command}`);
