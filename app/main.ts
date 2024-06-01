@@ -4,6 +4,7 @@ import hashObject from './gitCommands/hashObject';
 import lsTree from './gitCommands/lsTree';
 import { writeTree } from './gitCommands/writeTree';
 import { commitTree } from './gitCommands/commitTree';
+import { clone } from './gitCommands/Clone';
 
 const args = process.argv.slice(2);
 const command = args[0];
@@ -15,12 +16,14 @@ enum Commands {
   LsTree = 'ls-tree',
   WriteTree = 'write-tree',
   CommitTree = 'commit-tree',
+  Clone = 'clone',
 }
 
 switch (command) {
   case Commands.Init:
     console.log('Logs from your program will appear here!');
     init();
+
     break;
   case Commands.CatFile:
     catFile(args);
@@ -36,6 +39,9 @@ switch (command) {
     break;
   case Commands.CommitTree:
     process.stdout.write(commitTree(args));
+    break;
+  case Commands.Clone:
+    clone(args);
     break;
   default:
     throw new Error(`Unknown command ${command}`);

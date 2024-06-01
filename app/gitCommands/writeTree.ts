@@ -1,12 +1,10 @@
 import fs from 'fs';
 import path from 'path';
 import {
-  calculateSha1,
   getFileMode,
   hashFile,
   writeBufferToObject,
 } from '../utils/helperFunctions';
-import zlib from 'zlib';
 
 export function writeTree(dir: string): string {
   const readDir = fs.readdirSync(dir);

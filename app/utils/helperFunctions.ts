@@ -45,11 +45,11 @@ export function parseTreeContent(content: Buffer): string[] {
 
 export function getFileMode(stats: fs.Stats): string {
   if (stats.isSymbolicLink()) {
-    return '120000'; // symbolic link
+    return '120000';
   } else if (stats.mode & 0o111) {
-    return '100755'; // executable file
+    return '100755';
   } else {
-    return '100644'; // regular file
+    return '100644';
   }
 }
 
