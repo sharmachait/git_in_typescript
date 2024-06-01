@@ -17,7 +17,7 @@ commits, trees etc.), Git's transfer protocols and more.
 3. writing git tree objects
 4. reading git tree objects
 5. committing git tree objects
-6. pushing the changes to a remote server
+6. cloning a repo
 
 # Testing locally
 
