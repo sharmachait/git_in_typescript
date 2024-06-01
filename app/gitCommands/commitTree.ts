@@ -55,7 +55,7 @@ export function commitTree(args: string[]): string {
       Buffer.from(parent),
       Buffer.from(author),
       Buffer.from(committer),
-      Buffer.from(message),
+      Buffer.from(message + '\n'),
     ]);
 
     const header = `commit ${contentBuffer.length}\0`;
