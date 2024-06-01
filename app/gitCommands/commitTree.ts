@@ -51,7 +51,7 @@ export function commitTree(args: string[]): string {
     const size = contentBuffer.length;
     const header = `commit ${size}`;
     const headerBuffer = Buffer.from(header);
-    contentBuffer = Buffer.concat([headerBuffer, contentBuffer]);
+    contentBuffer = Buffer.concat([headerBuffer, nullBuffer, contentBuffer]);
 
     return writeBufferToObject(contentBuffer);
   } catch (e: any) {
