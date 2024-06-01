@@ -11,6 +11,14 @@ commits, trees etc.), Git's transfer protocols and more.
 **Note**: If you're viewing this repo on GitHub, head over to
 [codecrafters.io](https://codecrafters.io) to try the challenge.
 
+# Features
+1. reading git objects
+2. creating git blob objects
+3. writing git tree objects
+4. reading git tree objects
+5. committing git tree objects
+6. pushing the changes to a remote server
+
 # Testing locally
 
 The `your_git.sh` script is expected to operate on the `.git` folder inside the
