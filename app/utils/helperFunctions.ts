@@ -79,3 +79,18 @@ export function hashFile(filePath: string): string {
     return '';
   }
 }
+
+export function writeBufferToObject(contentBuffer: Buffer): string {
+  const sha = calculateSha1(contentBuffer);
+  const folderName = sha.substring(0, 2);
+  const fileName = sha.substring(2);
+  const folderPath = path.join('.git', 'objects', folderName);
+  const compressedFilePath = path.join(folderPath, fileName);
+  if (!fs.existsSync(folderPath)) {
+    fs.mkdirSync(folderPath, { recursive: true });
+  }
+
+  const compressedBuffer = zlib.deflateSync(contentBuffer);
+  fs.writeFileSync(compressedFilePath, compressedBuffer);
+  return sha;
+}

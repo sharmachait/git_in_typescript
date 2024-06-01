@@ -1,6 +1,11 @@
 import fs from 'fs';
 import path from 'path';
-import { calculateSha1, getFileMode, hashFile } from '../utils/helperFunctions';
+import {
+  calculateSha1,
+  getFileMode,
+  hashFile,
+  writeBufferToObject,
+} from '../utils/helperFunctions';
 import zlib from 'zlib';
 
 export function writeTree(dir: string): string {
@@ -75,16 +80,5 @@ export function writeTree(dir: string): string {
     contentBuffer,
   ]);
 
-  const sha = calculateSha1(contentBuffer);
-  const folderName = sha.substring(0, 2);
-  const fileName = sha.substring(2);
-  const folderPath = path.join('.git', 'objects', folderName);
-  const compressedFilePath = path.join(folderPath, fileName);
-  if (!fs.existsSync(folderPath)) {
-    fs.mkdirSync(folderPath, { recursive: true });
-  }
-
-  const compressedBuffer = zlib.deflateSync(contentBuffer);
-  fs.writeFileSync(compressedFilePath, compressedBuffer);
-  return sha;
+  return writeBufferToObject(contentBuffer);
 }
