@@ -7,7 +7,7 @@ export function commitTree(args: string[]): string {
     const parentSha = args[3];
     const mFlag = args[4];
     const message = args[5];
-
+    console.log({ message });
     if (
       treeSha === undefined ||
       pFlag === undefined ||
