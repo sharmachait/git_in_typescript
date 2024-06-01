@@ -23,7 +23,6 @@ switch (command) {
   case Commands.Init:
     console.log('Logs from your program will appear here!');
     init();
-
     break;
   case Commands.CatFile:
     catFile(args);
