@@ -8,7 +8,7 @@ const spaceIndex = buffer.indexOf(' ');
 
 if (spaceIndex !== -1) {
   // Get the sub-buffer from the start to the index of the space character
-  const subBuffer = buffer.slice(0, spaceIndex);
+  const subBuffer = buffer.subarray(0, spaceIndex);
 
   // Convert the sub-buffer to a string to verify
   console.log(subBuffer.toString()); // Output: '100644'
