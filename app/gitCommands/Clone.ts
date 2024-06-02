@@ -1,8 +1,7 @@
-import fs from 'fs';
-import { createDirectory } from '../utils/helperFunctions';
+import init from './init';
 
 export async function clone(args: string[]) {
   let uri = args[1];
   let target = args[2];
-  createDirectory(target);
+  init(target);
 }
