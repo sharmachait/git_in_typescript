@@ -1,7 +1,7 @@
 import fs from 'fs';
 
 export default function init(path: string) {
-  if (path !== '') {
+  if (path === '') {
     fs.mkdirSync('.git', { recursive: true });
     fs.mkdirSync('.git/objects', { recursive: true });
     fs.mkdirSync('.git/refs', { recursive: true });
