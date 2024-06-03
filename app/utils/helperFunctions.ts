@@ -96,9 +96,37 @@ export function writeBufferToObject(contentBuffer: Buffer): string {
   return sha;
 }
 
-export function createDirectory(target: string) {
-  let exists = fs.existsSync(target);
-  if (!exists) {
-    fs.mkdirSync(target, { recursive: true });
+export function parsePkt(data: string): string[] {
+  let lines: string[] = [];
+  console.log(data);
+  let i = 0;
+  for (let j = 0; j < 1000; j++) {
+    let len = parseInt(data.substring(i, i + 4), 16);
+    let line = data.substring(i + 4, i + len);
+    lines.push(line);
+    if (len == 0) {
+      i += 4;
+    } else {
+      i += len;
+    }
+    if (i >= data.length) break;
   }
+  // pktBuilder(lines);
+  console.log({ lines });
+  return lines;
+}
+
+export function pktBuilder(lines: string[]): string {
+  let res: string[] = [];
+  for (let line of lines) {
+    let lenP5 = line.length + 5;
+    let hexString = lenP5.toString(16).padStart(4, '0');
+
+    res.push(hexString);
+    res.push(line);
+    res.push('\n');
+  }
+  res.push('0000');
+  console.log(res);
+  return res.join('');
 }
