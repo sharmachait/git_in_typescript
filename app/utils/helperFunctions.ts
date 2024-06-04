@@ -98,7 +98,6 @@ export function writeBufferToObject(contentBuffer: Buffer): string {
 
 export function parsePkt(data: string): string[] {
   let lines: string[] = [];
-  console.log(data);
   let i = 0;
   for (let j = 0; j < 1000; j++) {
     let len = parseInt(data.substring(i, i + 4), 16);
@@ -111,8 +110,6 @@ export function parsePkt(data: string): string[] {
     }
     if (i >= data.length) break;
   }
-  // pktBuilder(lines);
-  console.log({ lines });
   return lines;
 }
 
