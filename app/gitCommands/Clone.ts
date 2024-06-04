@@ -1,5 +1,5 @@
 import init from './init';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { parsePkt } from '../utils/helperFunctions';
 
 export async function clone(args: string[]) {
@@ -14,14 +14,23 @@ export async function clone(args: string[]) {
 }
 
 export async function get_refs(baseUrl: string): Promise<string[]> {
-  let uploadPackUri = baseUrl + '/info/refs?service=git-upload-pack'; // to receive refs info
-  let uploadPackResponse = await axios.get(uploadPackUri);
-  let validHeader = validateHeader(uploadPackResponse.data.substring(0, 5));
-  if (!validHeader) {
+  try {
+    let uploadPackUri = baseUrl + '/info/refs?service=git-upload-pack'; // to receive refs info
+    let uploadPackResponse = await axios.get(uploadPackUri);
+    let status = uploadPackResponse.status;
+    if (status !== 200) {
+      return [];
+    }
+    let validHeader = validateHeader(uploadPackResponse.data.substring(0, 5));
+    if (!validHeader) {
+      return [];
+    }
+    console.log({ data: uploadPackResponse.data });
+    return parsePkt(uploadPackResponse.data);
+  } catch (e: any) {
+    console.log(e.message);
     return [];
   }
-  console.log({ data: uploadPackResponse.data });
-  return parsePkt(uploadPackResponse.data);
 }
 
 function validateHeader(data: string): boolean {
