@@ -3,6 +3,7 @@ import fs from 'fs';
 import zlib from 'zlib';
 import path from 'path';
 import axios from 'axios';
+import assert from 'node:assert';
 
 export function calculateSha1(buffer: Buffer): string {
   const hash = crypto.createHash('sha1');
@@ -126,4 +127,38 @@ export function pktBuilder(lines: string[]): string {
   res.push('0000');
   console.log(res);
   return res.join('');
+}
+
+function validateHeader(data: string): boolean {
+  const regex = new RegExp('^[0-9a-f]{4}#');
+  const match = regex.test(data);
+  return match;
+}
+
+export async function getRefs(baseUrl: string): Promise<string> {
+  try {
+    let uploadPackUri = baseUrl + '/info/refs?service=git-upload-pack'; // to receive refs info
+    let uploadPackResponse = await axios.get(uploadPackUri);
+    let status = uploadPackResponse.status;
+    if (status !== 200) {
+      return '';
+    }
+    let validHeader = validateHeader(uploadPackResponse.data.substring(0, 5));
+    if (!validHeader) {
+      return '';
+    }
+    return uploadPackResponse.data;
+  } catch (e: any) {
+    console.log(e.message);
+    return '';
+  }
+}
+
+export async function getRemoteMasterHash(baseUrl: string) {
+  let refsData = await getRefs(baseUrl);
+  let lines = parsePkt(refsData);
+  let masterSha = lines[2].substring(0, 40);
+  let masterRefSegment = lines[2].split('HEAD:')[1];
+  let masterRef = masterRefSegment.substring(0, masterRefSegment.indexOf(' '));
+  return [masterRef, masterSha];
 }
