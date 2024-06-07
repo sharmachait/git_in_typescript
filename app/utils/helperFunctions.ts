@@ -137,7 +137,8 @@ function validateHeader(data: string): boolean {
 
 export async function getRefs(baseUrl: string): Promise<string> {
   try {
-    let uploadPackUri = baseUrl + '/info/refs?service=git-upload-pack'; // to receive refs info
+    let uploadPackUri = baseUrl + '/info/refs?service=git-upload-pack';
+    // to receive refs info
     let uploadPackResponse = await axios.get(uploadPackUri);
     let status = uploadPackResponse.status;
     if (status !== 200) {
@@ -154,11 +155,32 @@ export async function getRefs(baseUrl: string): Promise<string> {
   }
 }
 
-export async function getRemoteMasterHash(baseUrl: string) {
+export type Ref = {
+  mode: string;
+  hash: string;
+  branch_name: string;
+};
+
+export async function getRemoteMasterHash(baseUrl: string): Promise<Ref> {
   let refsData = await getRefs(baseUrl);
   let lines = parsePkt(refsData);
   let masterSha = lines[2].substring(0, 40);
   let masterRefSegment = lines[2].split('HEAD:')[1];
   let masterRef = masterRefSegment.substring(0, masterRefSegment.indexOf(' '));
-  return [masterRef, masterSha];
+  return { branch_name: masterRef, hash: masterSha, mode: '0155' };
+}
+
+export async function getRemoteRefs(baseUrl: string): Promise<Ref[]> {
+  let refsData = await getRefs(baseUrl);
+  let lines = parsePkt(refsData);
+  let refs: Ref[] = [];
+  for (let i = 3; i < lines.length; i++) {
+    let sha = lines[i].substring(0, 40);
+    let branchName = lines[i].split(' ')[1];
+    if (branchName === undefined) continue;
+    branchName = branchName.substring(0, branchName.length - 1);
+    refs.push({ branch_name: branchName, hash: sha, mode: '0155' });
+  }
+  console.log({ refs });
+  return refs;
 }
