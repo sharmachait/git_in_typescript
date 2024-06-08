@@ -184,3 +184,5 @@ export async function getRemoteRefs(baseUrl: string): Promise<Ref[]> {
   console.log({ refs });
   return refs;
 }
+
+// bun run app/main.ts clone https://github.com/sharmachait/mern-chat-app "C:\Users\chait\OneDrive\Desktop\cohort code alongs\clone"
