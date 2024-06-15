@@ -189,32 +189,4 @@ export async function getRemoteRefs(baseUrl: string): Promise<Ref[]> {
   return refs;
 }
 
-export async function getCommit(hash: string, baseUrl: string, refs: Ref[]) {
-  try {
-    let uploadPackUri = baseUrl + '/git-upload-pack';
-
-    const buffers: Buffer[] = [];
-    buffers.push(Buffer.from('0011command=fetch0001000fno-progress'));
-
-    for (let ref of refs) {
-      buffers.push(Buffer.from(`0032want ${ref.hash}\n`));
-    }
-    buffers.push(Buffer.from('0009done\n0000'));
-    const body = Buffer.concat(buffers);
-    const headers = {
-      'Content-Type': 'application/x-git-upload-pack-request',
-      'Git-Protocol': 'version=2',
-    };
-
-    let response = await axios.post(uploadPackUri, Buffer.from(body), {
-      headers: headers,
-    });
-
-    console.log(response);
-  } catch (e: any) {
-    console.log({ msg: e.message });
-    return 'hi';
-  }
-}
-
 // bun run app/main.ts clone https://github.com/sharmachait/mern-chat-app "C:\Users\chait\OneDrive\Desktop\cohort code alongs\clone"
