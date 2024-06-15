@@ -6,6 +6,7 @@ import {
   getRemoteRefs,
   parsePkt,
   Ref,
+  write_object,
 } from '../utils/helperFunctions';
 import axios from 'axios';
 
@@ -43,7 +44,7 @@ export async function clone(args: string[]) {
 
   let x = await packResponse.arrayBuffer();
   let packBytes = Buffer.from(x);
-  const packLines = [];
+  const packLines: Buffer[] = [];
 
   while (packBytes.length > 0) {
     const lineLen = parseInt(packBytes.subarray(0, 4).toString(), 16);
@@ -54,6 +55,78 @@ export async function clone(args: string[]) {
     packBytes = packBytes.subarray(lineLen);
   }
 
-  // pack_file = b"".join(l[1:] for l in pack_lines[1:])
-  // console.log(packLines);
+  for (let i = 1; i < packLines.length; i++) {
+    let line = packLines[i];
+    packLines[i] = line.subarray(1);
+  }
+  let packFile: Buffer = Buffer.concat(packLines.slice(1));
+  packFile = packFile.subarray(8);
+  const nObjs = packFile.readUInt32BE(0);
+  packFile = packFile.subarray(4);
+  for (let o = 0; o < nObjs; o++) {
+    let [ty, size, pack_file] = nextSizeType(packFile);
+    packFile = pack_file;
+    switch (ty) {
+      case 'commit':
+      case 'tree':
+      case 'blob':
+      case 'tag':
+        write_object(target, ty, packFile);
+        break;
+      case 'ref_delta':
+        break;
+      default:
+        throw new Error('not implemented');
+    }
+  }
+}
+
+function nextSizeType(bs: Buffer): [string, number, Buffer] {
+  let ty: number | string = (bs[0] & 0b01110000) >> 4;
+  switch (ty) {
+    case 1:
+      ty = 'commit';
+      break;
+    case 2:
+      ty = 'tree';
+      break;
+    case 3:
+      ty = 'blob';
+      break;
+    case 4:
+      ty = 'tag';
+      break;
+    case 6:
+      ty = 'ofs_delta';
+      break;
+    case 7:
+      ty = 'ref_delta';
+      break;
+    default:
+      ty = 'unknown';
+      break;
+  }
+  let size = bs[0] & 0b00001111;
+  let i = 1;
+  let off = 4;
+
+  while (bs[i - 1] & 0b10000000) {
+    size += (bs[i] & 0b01111111) << off;
+    off += 7;
+    i++;
+  }
+
+  return [ty, size, bs.subarray(i)];
+}
+
+function nextSize(bs: Buffer): [number, Buffer] {
+  let size = bs[0] & 0b01111111;
+  let i = 1;
+  let off = 7;
+  while (bs[i - 1] & 0b10000000) {
+    size += (bs[i] & 0b01111111) << off;
+    off += 7;
+    i++;
+  }
+  return [size, bs.subarray(i)];
 }

@@ -81,7 +81,20 @@ export function hashFile(filePath: string): string {
     return '';
   }
 }
-
+export function write_object(
+  basePath: string,
+  ty: string,
+  content: Buffer
+): string {
+  content = Buffer.concat([
+    Buffer.from(ty),
+    Buffer.from(' '),
+    Buffer.from(content.length.toString()),
+    Buffer.from('\0'),
+    content,
+  ]);
+  return writeBufferToObject(content);
+}
 export function writeBufferToObject(contentBuffer: Buffer): string {
   const sha = calculateSha1(contentBuffer);
   const folderName = sha.substring(0, 2);
