@@ -76,6 +76,7 @@ export async function clone(args: string[]) {
       case 'ref_delta':
         break;
       default:
+        console.log(ty);
         throw new Error('not implemented');
     }
   }
