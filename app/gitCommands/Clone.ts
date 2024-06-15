@@ -19,13 +19,15 @@ export async function clone(args: string[]) {
   for (let ref of refs) {
     writeShaToFile(target, ref.branch_name, ref.hash);
   }
-  await getCommit(masterRef.hash, baseUrl, refs);
+  //await getCommit(masterRef.hash, baseUrl, refs);
 }
 
 function writeShaToFile(target: string, name: string, sha: string) {
   const filePath = path.join(target, '.git', name);
   const lastSlashIndex = filePath.lastIndexOf('\\');
   const folderPath = filePath.substring(0, lastSlashIndex);
+  console.log({ folderPath });
+  console.log({ filePath });
   if (!fs.existsSync(folderPath)) {
     fs.mkdirSync(folderPath, { recursive: true });
   }
