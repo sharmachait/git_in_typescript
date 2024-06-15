@@ -24,10 +24,7 @@ export async function clone(args: string[]) {
 
 function writeShaToFile(target: string, name: string, sha: string) {
   const filePath = path.join(target, '.git', name);
-  const lastSlashIndex = filePath.lastIndexOf('/');
-  const folderPath = filePath.substring(0, lastSlashIndex);
-  console.log({ folderPath });
-  console.log({ filePath });
+  const folderPath = path.dirname(filePath);
   if (!fs.existsSync(folderPath)) {
     fs.mkdirSync(folderPath, { recursive: true });
   }
