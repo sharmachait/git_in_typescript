@@ -93,7 +93,18 @@ export function write_object(
     Buffer.from('\0'),
     content,
   ]);
-  return writeBufferToObject(content);
+  const sha = calculateSha1(content);
+  const folderName = sha.substring(0, 2);
+  const fileName = sha.substring(2);
+  const folderPath = path.join(basePath, '.git', 'objects', folderName);
+  const compressedFilePath = path.join(folderPath, fileName);
+  if (!fs.existsSync(folderPath)) {
+    fs.mkdirSync(folderPath, { recursive: true });
+  }
+
+  const compressedBuffer = zlib.deflateSync(content);
+  fs.writeFileSync(compressedFilePath, compressedBuffer);
+  return sha;
 }
 export function writeBufferToObject(contentBuffer: Buffer): string {
   const sha = calculateSha1(contentBuffer);

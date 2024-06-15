@@ -77,7 +77,7 @@ export async function clone(args: string[]) {
         break;
       default:
         console.log(ty);
-        throw new Error('not implemented');
+      //throw new Error('not implemented');
     }
   }
 }
