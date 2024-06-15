@@ -213,7 +213,7 @@ export async function getCommit(hash: string, baseUrl: string, refs: Ref[]) {
     console.log(response);
   } catch (e: any) {
     console.log({ msg: e.message });
-    return '';
+    return 'hi';
   }
 }
 
