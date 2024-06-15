@@ -104,6 +104,7 @@ function nextSizeType(bs: Buffer): [string, number, Buffer] {
       ty = 'ref_delta';
       break;
     default:
+      console.log(ty);
       ty = 'unknown';
       break;
   }
