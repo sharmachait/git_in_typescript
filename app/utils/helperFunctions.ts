@@ -173,16 +173,48 @@ export async function getRemoteMasterHash(baseUrl: string): Promise<Ref> {
 export async function getRemoteRefs(baseUrl: string): Promise<Ref[]> {
   let refsData = await getRefs(baseUrl);
   let lines = parsePkt(refsData);
+  // console.log({ lines });
   let refs: Ref[] = [];
   for (let i = 3; i < lines.length; i++) {
     let sha = lines[i].substring(0, 40);
     let branchName = lines[i].split(' ')[1];
     if (branchName === undefined) continue;
     branchName = branchName.substring(0, branchName.length - 1);
+    // if (branchName.split('/')[1] === 'pull') continue;
     refs.push({ branch_name: branchName, hash: sha, mode: '0155' });
   }
-  console.log({ refs });
+  // console.log({ refs });
+  let headSha = lines[2].split(' HEAD')[0];
+  refs.push({ branch_name: 'HEAD', hash: headSha, mode: '0155' });
   return refs;
+}
+
+export async function getCommit(hash: string, baseUrl: string, refs: Ref[]) {
+  try {
+    let uploadPackUri = baseUrl + '/git-upload-pack';
+
+    const buffers: Buffer[] = [];
+    buffers.push(Buffer.from('0011command=fetch0001000fno-progress'));
+
+    for (let ref of refs) {
+      buffers.push(Buffer.from(`0032want ${ref.hash}\n`));
+    }
+    buffers.push(Buffer.from('0009done\n0000'));
+    const body = Buffer.concat(buffers);
+    const headers = {
+      'Content-Type': 'application/x-git-upload-pack-request',
+      'Git-Protocol': 'version=2',
+    };
+
+    let response = await axios.post(uploadPackUri, Buffer.from(body), {
+      headers: headers,
+    });
+
+    console.log(response);
+  } catch (e: any) {
+    console.log({ msg: e.message });
+    return '';
+  }
 }
 
 // bun run app/main.ts clone https://github.com/sharmachait/mern-chat-app "C:\Users\chait\OneDrive\Desktop\cohort code alongs\clone"
