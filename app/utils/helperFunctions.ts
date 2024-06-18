@@ -212,5 +212,3 @@ export async function getRemoteRefs(baseUrl: string): Promise<Ref[]> {
   refs.push({ branch_name: 'HEAD', hash: headSha, mode: '0155' });
   return refs;
 }
-
-// bun run app/main.ts clone https://github.com/sharmachait/mern-chat-app "C:\Users\chait\OneDrive\Desktop\cohort code alongs\clone"

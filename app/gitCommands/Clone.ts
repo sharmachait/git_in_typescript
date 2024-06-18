@@ -1,6 +1,25 @@
 import init from './init';
 const fs = require('fs');
 const path = require('path');
+import * as zlib from 'zlib';
+import { Transform, TransformCallback, TransformOptions } from 'stream';
+class CaptureUnusedData extends Transform {
+  unusedData: Buffer;
+
+  constructor(options?: TransformOptions) {
+    super(options);
+    this.unusedData = Buffer.alloc(0);
+  }
+
+  _transform(
+    chunk: Buffer,
+    encoding: string,
+    callback: TransformCallback
+  ): void {
+    this.unusedData = Buffer.concat([this.unusedData, chunk]);
+    callback();
+  }
+}
 import {
   getRemoteMasterHash,
   getRemoteRefs,
@@ -60,23 +79,48 @@ export async function clone(args: string[]) {
     packLines[i] = line.subarray(1);
   }
   let packFile: Buffer = Buffer.concat(packLines.slice(1));
+
   packFile = packFile.subarray(8);
   const nObjs = packFile.readUInt32BE(0);
   packFile = packFile.subarray(4);
+
   for (let o = 0; o < nObjs; o++) {
-    let [ty, size, pack_file] = nextSizeType(packFile);
-    packFile = pack_file;
+    let arr = nextSizeType(packFile);
+    let ty = arr[0];
+    let size = arr[1];
+    packFile = arr[2];
+    if (o === 1 || o === 0) {
+      console.log(ty);
+      console.log(size);
+      console.log(packFile.length);
+    }
+
     switch (ty) {
       case 'commit':
       case 'tree':
       case 'blob':
       case 'tag':
-        write_object(target, ty, packFile);
+        const decompressStream = zlib.createUnzip();
+        const captureStream = new CaptureUnusedData();
+        decompressStream.on('data', (chunk: Buffer) => {
+          const content = chunk;
+          write_object(target, ty, content);
+        });
+        decompressStream.on('end', () => {
+          packFile = captureStream.unusedData;
+          console.log(packFile.subarray(0, 100));
+        });
+        decompressStream.pipe(captureStream);
+        decompressStream.write(packFile);
+        decompressStream.end();
+
+        //fix unused data
         break;
       case 'ref_delta':
         break;
       default:
-        console.log(ty);
+        // console.log(ty);
+        break;
       //throw new Error('not implemented');
     }
   }
@@ -84,6 +128,7 @@ export async function clone(args: string[]) {
 
 function nextSizeType(bs: Buffer): [string, number, Buffer] {
   let ty: number | string = (bs[0] & 0b01110000) >> 4;
+
   switch (ty) {
     case 1:
       ty = 'commit';
@@ -104,7 +149,6 @@ function nextSizeType(bs: Buffer): [string, number, Buffer] {
       ty = 'ref_delta';
       break;
     default:
-      console.log(ty);
       ty = 'unknown';
       break;
   }
@@ -117,7 +161,6 @@ function nextSizeType(bs: Buffer): [string, number, Buffer] {
     off += 7;
     i++;
   }
-
   return [ty, size, bs.subarray(i)];
 }
 
@@ -132,3 +175,6 @@ function nextSize(bs: Buffer): [number, Buffer] {
   }
   return [size, bs.subarray(i)];
 }
+// bun run app/main.ts clone https://github.com/sharmachait/mern-chat-app "C:\Users\chait\OneDrive\Desktop\cohort code alongs\clone"
+
+// bun run app/main.ts clone https://github.com/codecrafters-io/git-sample-3 "C:\Users\chait\OneDrive\Desktop\cohort code alongs\clone"
