@@ -13,5 +13,5 @@ if (spaceIndex !== -1) {
   // Convert the sub-buffer to a string to verify
   console.log(subBuffer.toString()); // Output: '100644'
 } else {
-  console.log('Space character not found');
+  console.log('Space character not found');//
 }
